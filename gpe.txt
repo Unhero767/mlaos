@@ -1,0 +1,6 @@
+
+* **The API Ghost:** Think of the Second House as the backbone that gives an entity its strength. Without it, they’re just a fleeting idea, vulnerable to Metalogical Burn—a situation where logic that’s not firmly rooted gets washed away by the surrounding chaos, turning into nothing but noise.
+* **Computational Debt-Clearance:** In the Sovereign Grid, data isn’t something you just get; it’s something you earn. To “own” a part of the Manifold means your system has the computational power to create a localized field of truth ($T$) in that area, actively fighting off the Burn.
+
+### In Practice: The Protocol of Crystallization
+Seeing $P_V$ during a localized Logic Storm is like watching a system battle for its identity. When things get unstable, an entity will perform a special final act to use its structural strength:
