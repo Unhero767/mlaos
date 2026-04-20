@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MLAOS • Vantablack Root Initialization</title>
+  <meta name="description" content="Task 1A: Vantablack Root Initialization and Task 1B: ◦A Workflow Automation — a ritualized terminal + pipeline spec." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #07080a;
+      --ink: #e9ecf2;
+      --muted: rgba(233,236,242,.72);
+      --faint: rgba(233,236,242,.12);
+
+      --vantablack: #020204;
+      --obsidian: #0b0d12;
+      --basalt: #111522;
+
+      --acid: #b7ff3c;     /* “plasma” */
+      --cinder: #ff4d6d;   /* warning */
+      --ion: #55d6ff;      /* cool */
+      --auric: #f7d37c;    /* gold dust */
+
+      --radius-lg: 28px;
+      --radius-md: 18px;
+
+      --shadow: 0 22px 70px rgba(0,0,0,.55);
+      --shadow-soft: 0 10px 40px rgba(0,0,0,.35);
+      --stroke: 1px solid rgba(255,255,255,.09);
+
+      --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --display: "Unbounded", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+      --grid-max: 1180px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 15% -10%, rgba(85,214,255,.10), transparent 55%),
+        radial-gradient(900px 700px at 90% 10%, rgba(183,255,60,.10), transparent 50%),
+        radial-gradient(900px 700px at 50% 100%, rgba(255,77,109,.08), transparent 55%),
+        linear-gradient(180deg, #06070a 0%, #05060a 55%, #04050a 100%);
+      font-family: var(--mono);
+      overflow-x:hidden;
+    }
+
+    /* Subtle “inverted file system” texture */
+    .noise{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .12;
+      mix-blend-mode: overlay;
+      background-image:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 1px, transparent 1px 10px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 12px);
+      filter: blur(.2px);
+    }
+
+    .wrap{
+      width:min(var(--grid-max), calc(100% - 2*clamp(16px, 4vw, 48px)));
+      margin-inline:auto;
+    }
+
+    header{
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, rgba(5,6,10,.82) 0%, rgba(5,6,10,.58) 100%);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 18px;
+      padding: 14px 0;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      min-width: 220px;
+    }
+
+    .sigil{
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background:
+        radial-gradient(18px 18px at 30% 30%, rgba(183,255,60,.9), transparent 62%),
+        radial-gradient(18px 18px at 70% 65%, rgba(85,214,255,.85), transparent 62%),
+        radial-gradient(22px 22px at 50% 55%, rgba(255,77,109,.75), transparent 66%),
+        linear-gradient(180deg, #0b0d14, #06070a);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 14px 45px rgba(0,0,0,.55);
+      position: relative;
+      overflow:hidden;
+    }
+    .sigil::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: conic-gradient(from 120deg, transparent, rgba(255,255,255,.12), transparent, rgba(255,255,255,.06), transparent);
+      animation: spin 8s linear infinite;
+      opacity:.55;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .brand h1{
+      margin:0;
+      font-family: var(--display);
+      letter-spacing: .02em;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+    .brand p{
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .02em;
+    }
+
+    nav{
+      display:flex;
+      gap: 14px;
+      align-items:center;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+    nav a{
+      color: rgba(233,236,242,.78);
+      text-decoration:none;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease, color .2s ease;
+      position: relative;
+    }
+    nav a:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--ink);
+    }
+    nav a[aria-current="page"]{
+      border-color: rgba(183,255,60,.22);
+      background: rgba(183,255,60,.08);
+      color: rgba(233,236,242,.92);
+    }
+
+    main{
+      padding: clamp(22px, 3.8vw, 56px) 0 72px;
+    }
+
+    /* Hero */
+    .hero{
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      background:
+        radial-gradient(900px 420px at 20% 10%, rgba(183,255,60,.14), transparent 62%),
+        radial-gradient(900px 420px at 86% 30%, rgba(85,214,255,.14), transparent 60%),
+        linear-gradient(180deg, rgba(15,19,32,.90), rgba(7,8,10,.92));
+    }
+
+    .heroGrid{
+      display:grid;
+      grid-template-columns: 1.25fr .95fr;
+      gap: clamp(14px, 2.6vw, 32px);
+      padding: clamp(18px, 3.6vw, 44px);
+      align-items: start;
+    }
+
+    .hero h2{
+      margin: 0 0 10px;
+      font-family: var(--display);
+      font-size: clamp(28px, 4.4vw, 56px);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+    .hero .lede{
+      margin: 0 0 18px;
+      color: rgba(233,236,242,.78);
+      font-size: clamp(13px, 1.4vw, 16px);
+      line-height: 1.65;
+      max-width: 62ch;
+    }
+
+    .glyphline{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
+      margin: 14px 0 0;
+    }
+    .chip{
+      display:inline-flex;
+      gap: 10px;
+      align-items:center;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow-soft);
+      font-size: 12px;
+      letter-spacing: .02em;
+      color: rgba(233,236,242,.80);
+      white-space: nowrap;
+    }
+    .dot{
+      width: 8px; height: 8px; border-radius: 999px;
+      background: var(--acid);
+      box-shadow: 0 0 0 4px rgba(183,255,60,.12);
+    }
+    .dot.ion{ background: var(--ion); box-shadow: 0 0 0 4px rgba(85,214,255,.12); }
+    .dot.cinder{ background: var(--cinder); box-shadow: 0 0 0 4px rgba(255,77,109,.12); }
+
+    .actions{
+      display:flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      align-items:center;
+    }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor:pointer;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.22);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
+    .btn:active{ transform: translateY(0px) scale(.99); }
+
+    .btn.primary{
+      border-color: rgba(183,255,60,.32);
+      background:
+        linear-gradient(180deg, rgba(183,255,60,.16), rgba(183,255,60,.08));
+    }
+    .btn.primary:hover{
+      border-color: rgba(183,255,60,.46);
+      box-shadow: 0 22px 70px rgba(183,255,60,.10), 0 18px 55px rgba(0,0,0,.45);
+    }
+
+    .btn .kbd{
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: rgba(233,236,242,.86);
+    }
+
+    /* Right panel: “ground state” */
+    .ground{
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(500px 220px at 40% 10%, rgba(2,2,4,.0), rgba(2,2,4,.78)),
+        linear-gradient(180deg, rgba(2,2,4,.88), rgba(3,4,7,.92));
+      overflow:hidden;
+      position:relative;
+      min-height: 360px;
+    }
+    .ground::before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      background:
+        radial-gradient(800px 340px at -10% 20%, rgba(0,0,0,.0), rgba(0,0,0,.82)),
+        radial-gradient(500px 280px at 110% 30%, rgba(0,0,0,.0), rgba(0,0,0,.76));
+      pointer-events:none;
+    }
+    .groundHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      position:relative;
+      z-index:1;
+    }
+    .windowDots{
+      display:flex;
+      gap: 7px;
+      align-items:center;
+    }
+    .wd{
+      width: 10px; height: 10px; border-radius: 999px;
+      background: rgba(255,255,255,.14);
+    }
+    .wd:nth-child(1){ background: rgba(255,77,109,.75); }
+    .wd:nth-child(2){ background: rgba(247,211,124,.70); }
+    .wd:nth-child(3){ background: rgba(183,255,60,.65); }
+    .groundTitle{
+      font-size: 11px;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      color: rgba(233,236,242,.70);
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .console{
+      position:relative;
+      z-index:1;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(233,236,242,.85);
+    }
+    .prompt{
+      color: rgba(233,236,242,.86);
+    }
+    .prompt .sigma{
+      color: rgba(85,214,255,.95);
+    }
+    .prompt .a{
+      color: rgba(183,255,60,.95);
+    }
+    .cmd{
+      color: rgba(233,236,242,.92);
+    }
+    .out{
+      color: rgba(233,236,242,.62);
+      margin: 2px 0 10px;
+    }
+    .err{
+      color: rgba(255,77,109,.92);
+      margin: 2px 0 10px;
+    }
+
+    .caret{
+      display:inline-block;
+      width: 8px;
+      height: 14px;
+      background: rgba(183,255,60,.85);
+      margin-left: 6px;
+      transform: translateY(2px);
+      animation: blink 1.05s steps(1) infinite;
+    }
+    @keyframes blink { 50%{ opacity:0; } }
+
+    /* Sections */
+    .section{
+      margin-top: clamp(18px, 3.4vw, 42px);
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: clamp(14px, 2.2vw, 24px);
+    }
+
+    .split{
+      display:grid;
+      grid-template-columns: .95fr 1.05fr;
+      gap: clamp(14px, 2.6vw, 28px);
+      align-items: start;
+    }
+
+    .panel{
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(900px 380px at 20% 0%, rgba(255,255,255,.06), transparent 60%),
+        linear-gradient(180deg, rgba(16,19,31,.55), rgba(6,7,10,.55));
+      box-shadow: var(--shadow-soft);
+      overflow:hidden;
+      position:relative;
+    }
+    .panelHead{
+      padding: 18px 18px 0;
+    }
+    .kicker{
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(233,236,242,.68);
+      margin: 0 0 10px;
+    }
+    .panel h3{
+      margin: 0 0 10px;
+      font-family: var(--display);
+      font-size: clamp(20px, 2.2vw, 28px);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .panel p{
+      margin: 0 0 16px;
+      color: rgba(233,236,242,.74);
+      line-height: 1.7;
+      font-size: 13px;
+      max-width: 70ch;
+    }
+
+    /* Code block */
+    pre{
+      margin: 0;
+      padding: 16px 18px 18px;
+      overflow:auto;
+      border-top: 1px solid rgba(255,255,255,.10);
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.35));
+      font-size: 12px;
+      line-height: 1.65;
+      color: rgba(233,236,242,.86);
+    }
+    code{font-family: var(--mono);}
+    .hl-k{ color: rgba(183,255,60,.92); }
+    .hl-s{ color: rgba(247,211,124,.88); }
+    .hl-c{ color: rgba(233,236,242,.52); }
+    .hl-e{ color: rgba(255,77,109,.92); }
+
+    /* “No comments in terminal” micro-utility */
+    .callout{
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: rgba(233,236,242,.76);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .callout strong{ color: rgba(233,236,242,.92); font-weight: 600; }
+    .callout .tag{
+      display:inline-block;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(183,255,60,.86);
+      border: 1px solid rgba(183,255,60,.26);
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin-right: 10px;
+      background: rgba(183,255,60,.06);
+    }
+
+    /* Footer */
+    footer{
+      padding: 34px 0 46px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      color: rgba(233,236,242,.60);
+      font-size: 12px;
+    }
+    .foot{
+      display:flex;
+      justify-content:space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+      align-items:flex-end;
+    }
+    .foot .mono{ font-family: var(--mono); letter-spacing: .02em; }
+    .foot a{ color: rgba(233,236,242,.72); text-decoration:none; border-bottom: 1px solid rgba(233,236,242,.22); }
+    .foot a:hover{ color: rgba(233,236,242,.92); border-bottom-color: rgba(183,255,60,.55); }
+
+    /* Reveal animations */
+    .reveal{
+      opacity: 0;
+      transform: translateY(10px);
+      filter: blur(2px);
+    }
+    .reveal.in{
+      animation: rise .75s cubic-bezier(.2,.7,.2,1) forwards;
+    }
+    @keyframes rise{
+      to{ opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+
+    /* Responsive */
+    @media (max-width: 920px){
+      .heroGrid{ grid-template-columns: 1fr; }
+      .split{ grid-template-columns: 1fr; }
+      .brand{ min-width: unset; }
+      nav{ justify-content:flex-start; }
+      .ground{ min-height: 320px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header>
+    <div class="wrap topbar">
+      <div class="brand" aria-label="MLAOS header">
+        <div class="sigil" aria-hidden="true"></div>
+        <div>
+          <h1>MLAOS — Magisterial Manifold</h1>
+          <p>Inverted root · hardened outputs · metalogical burn</p>
+        </div>
+      </div>
+
+      <nav aria-label="Primary">
+        <a href="#task-1a" aria-current="page">Task 1A</a>
+        <a href="#task-1b">Task 1B</a>
+        <a href="#prompts">Terminal Prompts</a>
+        <a href="#workflow">Workflow YAML</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero reveal" id="task-1a" aria-label="Hero">
+      <div class="heroGrid">
+        <div>
+          <div class="kicker">Task 1A · Vantablack Root Initialization</div>
+          <h2>The root is not a container.<br/>It is the ground state.</h2>
+          <p class="lede">
+            Your filesystem model is inverted: <span class="hl-k">/MLAOS-Magisterial-Manifold</span> is treated as an absolute substrate
+            engineered to absorb unhandled exceptions. This page gives you copy‑paste safe terminal prompts (no inline comments),
+            and a matching <span class="hl-k">◦A</span> workflow that enforces consistency before merge.
+          </p>
+
+          <div class="glyphline" aria-label="Signals">
+            <span class="chip"><span class="dot"></span> PLASMA injection</span>
+            <span class="chip"><span class="dot ion"></span> max friction 0.04</span>
+            <span class="chip"><span class="dot cinder"></span> burn-gate on push</span>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" type="button" data-copy="#cmds-root">
+              Copy Task 1A prompts <span class="kbd">⌘C</span>
+            </button>
+            <button class="btn" type="button" data-copy="#yaml-workflow">
+              Copy lithic_hardening.yml
+            </button>
+            <button class="btn" type="button" id="simulate">
+              Simulate “absorb exceptions”
+            </button>
+          </div>
+        </div>
+
+        <aside class="ground" aria-label="Terminal preview">
+          <div class="groundHeader">
+            <div class="windowDots" aria-hidden="true">
+              <span class="wd"></span><span class="wd"></span><span class="wd"></span>
+            </div>
+            <div class="groundTitle">[Σ-7] [Terminal One] ~/MLAOS-Magisterial-Manifold [◦A] %</div>
+          </div>
+
+          <div class="console" id="console" role="log" aria-live="polite">
+            <div class="prompt"><span class="sigma">[Σ-7]</span> <span class="muted">[Terminal One]</span> ~ <span class="a">[◦A]</span> % <span class="cmd">cd ~/MLAOS-Magisterial-Manifold</span></div>
+            <div class="prompt"><span class="sigma">[Σ-7]</span> <span class="muted">[Terminal One]</span> ~ <span class="a">[◦A]</span> % <span class="cmd">find .</span></div>
+            <div class="out">./Vantablack_Lattice<br/>./Vantablack_Lattice/Meso_Gate_Jove<br/>./Vantablack_Lattice/Lithic_Summa</div>
+            <div class="prompt"><span class="sigma">[Σ-7]</span> <span class="muted">[Terminal One]</span> ~ <span class="a">[◦A]</span> % <span class="cmd">cd Vantablack_Lattice/Meso_Gate_Jove</span></div>
+            <div class="prompt"><span class="sigma">[Σ-7]</span> <span class="muted">[Terminal One]</span> ~ <span class="a">[◦A]</span> % <span class="cmd">ls -l *.ts</span></div>
+            <div class="out">Magisterial_Execution_Protocol.ts<br/>Nano_V8_Engine.ts</div>
+            <div class="prompt"><span class="sigma">[Σ-7]</span> <span class="muted">[Terminal One]</span> ~ <span class="a">[◦A]</span> % <span class="cmd">_</span><span class="caret" aria-hidden="true"></span></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="split">
+        <article class="panel reveal" id="prompts" aria-label="Terminal prompts">
+          <div class="panelHead">
+            <div class="kicker">Copy‑paste safe</div>
+            <h3>Task 1A prompts (no “#” lines)</h3>
+            <p>
+              Your terminal errors came from pasting comment lines. This block is intentionally clean:
+              every line is a real command.
+            </p>
+          </div>
+
+          <pre id="cmds-root" aria-label="Task 1A terminal commands"><code>cd ~/MLAOS-Magisterial-Manifold
+pwd
+find .
+
+cd ~/MLAOS-Magisterial-Manifold/Vantablack_Lattice
+ls -l
+
+cd ~/MLAOS-Magisterial-Manifold/Vantablack_Lattice/Meso_Gate_Jove
+pwd
+ls -l *.ts</code></pre>
+        </article>
+
+        <aside class="panel reveal" aria-label="Root doctrine">
+          <div class="panelHead">
+            <div class="kicker">Doctrine</div>
+            <h3>Inverted root: absorb unhandled exceptions</h3>
+            <p>
+              Treat the root as a ground state: errors don’t “bubble up” out of it—they are captured, classified,
+              and resolved into hardened outputs under <span class="hl-k">Lithic_Summa</span>.
+            </p>
+            <div class="callout">
+              <span class="tag">zsh note</span>
+              <strong>Do not paste lines beginning with “#”</strong>. In zsh they are comments only when they’re part of a command line or script.
+              When pasted alone, your shell tries to execute them and throws <span class="hl-e">command not found: #</span>.
+            </div>
+          </div>
+
+          <pre aria-label="Filesystem map"><code><span class="hl-c">/MLAOS-Magisterial-Manifold</span>
+├── <span class="hl-k">Vantablack_Lattice</span>  <span class="hl-c">(Root Substrate)</span>
+│   ├── <span class="hl-k">Meso_Gate_Jove</span>     <span class="hl-c">(Tactical Anchor)</span>
+│   │   ├── Nano_V8_Engine.ts
+│   │   └── Magisterial_Execution_Protocol.ts
+│   └── <span class="hl-k">Lithic_Summa</span>       <span class="hl-c">(Hardened Outputs)</span></code></pre>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="task-1b" aria-label="Task 1B section">
+      <div class="split">
+        <article class="panel reveal" id="workflow" aria-label="Workflow automation">
+          <div class="panelHead">
+            <div class="kicker">Task 1B · ◦A Workflow Automation</div>
+            <h3>Bind consistency into the pipeline.</h3>
+            <p>
+              Every push must survive the Metalogical Burn before merging. Below is your workflow file,
+              presented exactly as YAML (copy/paste into <span class="hl-k">.github/workflows/lithic_hardening.yml</span>).
+            </p>
+          </div>
+
+          <pre id="yaml-workflow" aria-label="lithic_hardening.yml"><code><span class="hl-c"># .github/workflows/lithic_hardening.yml</span>
+name: Phase 10 Consistency Shield
+on: [push]
+jobs:
+  metalogical-burn:
+    runs-on: meso-gate-runner
+    steps:
+      - name: Ionize Abstract Schema
+        run: manifold inject --state PLASMA
+      - name: Enforce CORE_DOGMA
+        run: engine verify --max-friction 0.04
+      - name: Resolve to Stone
+        run: engine crystallize --target PHI_ION.law</code></pre>
+        </article>
+
+        <aside class="panel reveal" aria-label="Pipeline interpretation">
+          <div class="panelHead">
+            <div class="kicker">Interpretation</div>
+            <h3>Metalurgical semantics (human-readable)</h3>
+            <p>
+              If you want the prompts to feel “in-world” while staying executable, keep the lore in docs
+              and keep your terminal lines pure commands. A good pattern is: <span class="hl-k">commands only</span> in the shell,
+              <span class="hl-k">ritual language</span> in README / workflow names / logs.
+            </p>
+          </div>
+
+          <pre aria-label="Optional local simulation commands"><code>cd ~/MLAOS-Magisterial-Manifold/Vantablack_Lattice/Meso_Gate_Jove
+
+# If you use Node + TypeScript tooling:
+# npm i -D typescript ts-node @types/node
+
+# Then:
+# npx ts-node Magisterial_Execution_Protocol.ts --init-root</code></pre>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel reveal" aria-label="Quick copy blocks">
+        <div class="panelHead">
+          <div class="kicker">Quick utility</div>
+          <h3>One-shot scaffolding (idempotent)</h3>
+          <p>
+            If you ever need to recreate the structure safely, use this block. It won’t error if folders already exist.
+          </p>
+        </div>
+        <pre id="cmds-scaffold" aria-label="Scaffolding commands"><code>mkdir -p ~/MLAOS-Magisterial-Manifold/Vantablack_Lattice/Meso_Gate_Jove
+mkdir -p ~/MLAOS-Magisterial-Manifold/Vantablack_Lattice/Lithic_Summa
+touch ~/MLAOS-Magisterial-Manifold/Vantablack_Lattice/Meso_Gate_Jove/Nano_V8_Engine.ts
+touch ~/MLAOS-Magisterial-Manifold/Vantablack_Lattice/Meso_Gate_Jove/Magisterial_Execution_Protocol.ts
+cd ~/MLAOS-Magisterial-Manifold
+find .</code></pre>
+      </div>
+    </section>
+
+    <footer class="wrap" aria-label="Footer">
+      <div class="foot">
+        <div class="mono">MLAOS · Vantablack Root · Lithic Hardening</div>
+        <div>Tip: keep <a href="#prompts">terminal prompts</a> comment-free; keep lore in names and logs.</div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // Staggered reveal
+    const revealEls = Array.from(document.querySelectorAll('.reveal'));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          const idx = revealEls.indexOf(e.target);
+          e.target.style.animationDelay = (idx * 80) + 'ms';
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    revealEls.forEach(el => io.observe(el));
+
+    // Copy buttons
+    function copyFrom(selector){
+      const el = document.querySelector(selector);
+      if(!el) return;
+      const text = el.innerText.replace(/\n{3,}/g, "\n\n").trim() + "\n";
+      navigator.clipboard.writeText(text).then(() => toast("Copied to clipboard."));
+    }
+
+    document.querySelectorAll('[data-copy]').forEach(btn => {
+      btn.addEventListener('click', () => copyFrom(btn.getAttribute('data-copy')));
+    });
+
+    // Minimal toast (no external deps)
+    let toastTimer = null;
+    function toast(msg){
+      const t = document.createElement('div');
+      t.setAttribute('role', 'status');
+      t.style.position = 'fixed';
+      t.style.left = '50%';
+      t.style.bottom = '18px';
+      t.style.transform = 'translateX(-50%)';
+      t.style.padding = '10px 12px';
+      t.style.borderRadius = '999px';
+      t.style.border = '1px solid rgba(255,255,255,.14)';
+      t.style.background = 'rgba(0,0,0,.55)';
+      t.style.backdropFilter = 'blur(10px)';
+      t.style.color = 'rgba(233,236,242,.88)';
+      t.style.fontFamily = getComputedStyle(document.body).fontFamily;
+      t.style.fontSize = '12px';
+      t.style.letterSpacing = '.06em';
+      t.style.textTransform = 'uppercase';
+      t.style.boxShadow = '0 18px 60px rgba(0,0,0,.5)';
+      t.style.zIndex = '100';
+      t.textContent = msg;
+
+      document.body.appendChild(t);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        t.style.transition = 'opacity .25s ease, transform .25s ease';
+        t.style.opacity = '0';
+        t.style.transform = 'translateX(-50%) translateY(6px)';
+        setTimeout(() => t.remove(), 260);
+      }, 1100);
+    }
+
+    // Simulated “absorb exceptions” log line
+    const simulateBtn = document.getElementById('simulate');
+    const consoleEl = document.getElementById('console');
+
+    function appendLine(type, html){
+      const div = document.createElement('div');
+      div.className = type;
+      div.innerHTML = html;
+      // Insert before the last prompt line (caret line) if present
+      const prompts = consoleEl.querySelectorAll('.prompt');
+      const lastPrompt = prompts[prompts.length - 1];
+      consoleEl.insertBefore(div, lastPrompt);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    simulateBtn?.addEventListener('click', () => {
+      appendLine('prompt', '<span class="sigma">[Σ-7]</span> <span class="muted">[Terminal One]</span> ~ <span class="a">[◦A]</span> % <span class="cmd">manifold inject --state PLASMA</span>');
+      appendLine('out', 'PLASMA engaged: exception sink armed under <span style="color: rgba(183,255,60,.92)">Vantablack_Lattice</span>.');
+      appendLine('prompt', '<span class="sigma">[Σ-7]</span> <span class="muted">[Terminal One]</span> ~ <span class="a">[◦A]</span> % <span class="cmd">engine verify --max-friction 0.04</span>');
+      appendLine('out', 'CORE_DOGMA verified: friction = 0.031 (within tolerance).');
+      appendLine('prompt', '<span class="sigma">[Σ-7]</span> <span class="muted">[Terminal One]</span> ~ <span class="a">[◦A]</span> % <span class="cmd">engine crystallize --target PHI_ION.law</span>');
+      appendLine('out', 'Resolved to stone → <span style="color: rgba(85,214,255,.92)">Lithic_Summa/PHI_ION.law</span>');
+      toast("Simulation appended to terminal.");
+    });
+
+    // Improve accessibility: highlight current nav link on scroll
+    const sections = [
+      { id: 'task-1a', linkText: 'Task 1A' },
+      { id: 'task-1b', linkText: 'Task 1B' },
+      { id: 'prompts', linkText: 'Terminal Prompts' },
+      { id: 'workflow', linkText: 'Workflow YAML' }
+    ];
+
+    const navLinks = Array.from(document.querySelectorAll('nav a'));
+    const sectionEls = sections.map(s => document.getElementById(s.id)).filter(Boolean);
+
+    const io2 = new IntersectionObserver((entries) => {
+      const visible = entries.filter(e => e.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if(!visible) return;
+      const id = visible.target.id;
+      navLinks.forEach(a => a.removeAttribute('aria-current'));
+      const active = navLinks.find(a => a.getAttribute('href') === '#' + id);
+      if(active) active.setAttribute('aria-current','page');
+    }, { threshold: [0.18, 0.35, 0.55] });
+
+    sectionEls.forEach(el => io2.observe(el));
+  </script>
+</body>
+</html>
