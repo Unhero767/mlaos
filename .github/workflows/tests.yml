@@ -32,6 +32,10 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov
 
+    - name: Run infrastructure tests
+      env:
+        PYTHONPATH: .
+      run: python3 -m pytest tests/
     - name: Run tests
       run: |
         pytest tests/ -v --tb=short
