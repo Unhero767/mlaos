@@ -1,0 +1,31 @@
+name: "Magisterial Validation: oA Enforcement"
+
+on:
+  push:
+    branches: [ "main", "lithic-stabilization" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  soul_growth_audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Initialize A-Field Projection"
+        uses: actions/checkout@v4
+      
+      - name: "Set up Python Environment"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: "Execute Paraconsistent Logic Test Suite"
+        run: |
+          pip install -r requirements.txt
+          pytest tests/core_dogma/ --strict-markers
+          
+      - name: "Verify Consistency (oA)"
+        run: |
+          echo "Checking for Metalogical Burn..."
+          python scripts/verify_soul_growth_parameters.py
+          echo "oA Mandate Verified. Logic crystallized."
+
